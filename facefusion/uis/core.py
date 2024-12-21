@@ -78,22 +78,35 @@ def register_ui_component(component_name : ComponentName, component: Component) 
 
 
 def launch() -> None:
-	ui_layouts_total = len(state_manager.get_item('ui_layouts'))
-	with gradio.Blocks(theme = get_theme(), css = get_css(), title = metadata.get('name') + ' ' + metadata.get('version'), fill_width = True) as ui:
-		for ui_layout in state_manager.get_item('ui_layouts'):
-			ui_layout_module = load_ui_layout_module(ui_layout)
+    ui_layouts_total = len(state_manager.get_item('ui_layouts'))
 
-			if ui_layouts_total > 1:
-				with gradio.Tab(ui_layout):
-					ui_layout_module.render()
-					ui_layout_module.listen()
-			else:
-				ui_layout_module.render()
-				ui_layout_module.listen()
+    with gradio.Blocks(
+        theme=get_theme(),
+        css=get_css(),
+        title=f"{metadata.get('name')} {metadata.get('version')}",
+        fill_width=True,
+    ) as ui:
+        for ui_layout in state_manager.get_item('ui_layouts'):
+            ui_layout_module = load_ui_layout_module(ui_layout)
 
-	for ui_layout in state_manager.get_item('ui_layouts'):
-		ui_layout_module = load_ui_layout_module(ui_layout)
-		ui_layout_module.run(ui)
+            if ui_layouts_total > 1:
+                with gradio.Tab(ui_layout):
+                    ui_layout_module.render()
+                    ui_layout_module.listen()
+            else:
+                ui_layout_module.render()
+                ui_layout_module.listen()
+
+    for ui_layout in state_manager.get_item('ui_layouts'):
+        ui_layout_module = load_ui_layout_module(ui_layout)
+        ui_layout_module.run(ui)
+
+    # Explicitly bind Gradio server
+    print("[INFO] Starting Gradio server on 0.0.0.0:7860")
+    ui.launch(
+        server_name="0.0.0.0",  # Bind to all network interfaces
+        server_port=7860,       # Ensure port matches Modal tunnel
+        share=True              # Enable public access
 
 
 def get_theme() -> gradio.Theme:
